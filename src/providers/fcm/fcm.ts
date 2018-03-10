@@ -2,14 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Firebase } from '@ionic-native/firebase';
 import { Platform } from 'ionic-angular';
-import { AngularFirestore } from 'angularfire2/firestore'
+import { AngularFirestore } from 'angularfire2/firestore';
 
-/*
-  Generated class for the FcmProvider provider.
 
-  See https://angular.io/guide/dependency-injection for more info on providers
-  and Angular DI.
-*/
 @Injectable()
 export class FcmProvider {
 
@@ -23,24 +18,38 @@ export class FcmProvider {
 
     let token;
 
-    if (this.platform.is('cordova')) {
+    if (this.platform.is('android')) {
+     
+      token = await this.firebaseNative.getToken()
+    } 
+
+    if (this.platform.is('ios')) {
       token = await this.firebaseNative.getToken();
-    } else {
-      // Get token via AngularFire2 or web SDK
-      token = null
-    }
+      const perm = await this.firebaseNative.grantPermission();
+    } 
+    
+    // Is not cordova == web PWA
+    if (!this.platform.is('cordova')) {
+      // TODO add PWA support with angularfire2
+    } 
+
     return this.saveTokenToFirestore(token)
   }
 
   private saveTokenToFirestore(token) {
+    if (!token) return;
     const devicesRef = this.afs.collection('devices')
 
-    const doc = { 
+    const docData = { 
       token,
       userId: 'testUser',
     }
 
-    return devicesRef.add(doc)
+    return devicesRef.doc(token).set(docData)
+  }
+
+  listenToNotifications() {
+    return this.firebaseNative.onNotificationOpen()
   }
 
 }
