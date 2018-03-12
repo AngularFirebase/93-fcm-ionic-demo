@@ -31,34 +31,14 @@ exports.newSubscriberNotification = functions.firestore
 
     const devices = await devicesRef.get()
 
-    const promises = []
+    const tokens = []
     
     devices.forEach(result => {
         const token = result.data().token;
 
-       promises.push( admin.messaging().sendToDevice(token, payload) )
+       tokens.push( token )
     })
 
-    return Promise.all(promises)
+    return admin.messaging().sendToDevice(tokens, payload)
 
-
-    // return devicesRef.get()
-
-
-
-
-
-
-    //     .then(snapshot => snapshot.data() )
-    //     .then(user => {
-            
-    //         const tokens = user.fcmTokens ? Object.keys(user.fcmTokens) : []
-
-    //         if (!tokens.length) {
-    //            throw new Error('User does not have any tokens!')
-    //         }
-
-    //         return admin.messaging().sendToDevice(tokens, payload)
-    //     })
-    //     .catch(err => console.log(err) )
 });
